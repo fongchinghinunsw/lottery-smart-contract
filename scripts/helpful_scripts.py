@@ -1,4 +1,4 @@
-from brownie import network, accounts, config, Contract, MockV3Aggregator, VRFCoordinatorMock, LinkToken
+from brownie import network, accounts, config, Contract, MockV3Aggregator, VRFCoordinatorMock, LinkToken, interface
 
 FORKED_LOCAL_ENVIRONMENTS = ["mainnet-fork", "mainnet-fork-dev"]
 LOCAL_BLOCKCHAIN_ENVIRONMENTS = ["development", "ganache-local"]
@@ -37,6 +37,7 @@ def get_contract(contract_name):
             version of this contract.
     """
     contract_type = contract_to_mock[contract_name]
+    print(contract_type)
     if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         # MockV3Aggregator.length
         if len(contract_type) <= 0:
@@ -45,7 +46,7 @@ def get_contract(contract_name):
         contract = contract_type[-1]
     else:
         contract_address = config["networks"][network.show_active()][contract_name]
-        contract = Contract.from_abi(contract_type.name, contract_address, contract_type.abi)
+        contract = Contract.from_abi(contract_type._name, contract_address, contract_type.abi)
     
     return contract
 
@@ -61,3 +62,18 @@ def deploy_mocks(decimals=DECIMALS, initial_value=INITIAL_VALUE):
     link_token = LinkToken.deploy({"from": account})
     VRFCoordinatorMock.deploy(link_token.address, {"from": account})
     print("Deploying mocks succeeded")
+
+def fund_with_link(contract_address, account=None, link_token=None, amount=100000000000000000): # 0.1 LINK
+    account = account if account else get_account()
+    link_token = link_token if link_token else get_contract("link_token")
+
+    # the line below is another way to interact with contract that has already been deployed
+    tx = link_token.transfer(contract_address, amount, {"from": account})
+    # if we have the interface we don't even need to compile down to the api ourselves, because brownie is smart
+    # enough to know that it can compile down to the api itself and we can just work directly with that interface
+    # link_token_contract = interface.LinkTokenInterface(link_token.address)
+    # tx = link_token_contract.transfer(contract_address, amount, {"from": account})
+    
+    tx.wait(1)
+    print("Funded contract")
+    return tx
