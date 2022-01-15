@@ -1,13 +1,16 @@
-from brownie import network, accounts, config, Contract, MockV3Aggregator, VRFCoordinatorMock, LinkToken, interface
+from brownie import network, accounts, config, Contract, MockV3Aggregator, VRFCoordinatorMock, LinkToken
 
-FORKED_LOCAL_ENVIRONMENTS = ["mainnet-fork", "mainnet-fork-dev"]
 LOCAL_BLOCKCHAIN_ENVIRONMENTS = ["development", "ganache-local"]
+FORKED_LOCAL_ENVIRONMENTS = ["mainnet-fork", "mainnet-fork-dev"]
 
 def get_account(index=None, id=None):
     if index:
+        # 'accounts' allows you to access all your local accounts.
+        # Each individual account is represented by an Account object that can
+        # perform actions such as querying a balance or sending ETH.
         return accounts[index]
     if id:
-        # load previously created brownie account
+        # load previously created brownie account on the system
         # these accounts can be found using the command `brownie accounts list`
         return accounts.load(id)
     if (
@@ -15,6 +18,9 @@ def get_account(index=None, id=None):
         or network.show_active() in FORKED_LOCAL_ENVIRONMENTS
     ):
         return accounts[0]
+    
+    # if on real network (only works for the Rinkeby testnet for now), add the account
+    # associated with the private key
     return accounts.add(config["wallets"]["from_key"])
 
 contract_to_mock = {
@@ -46,6 +52,7 @@ def get_contract(contract_name):
         contract = contract_type[-1]
     else:
         contract_address = config["networks"][network.show_active()][contract_name]
+        # get the contract instance
         contract = Contract.from_abi(contract_type._name, contract_address, contract_type.abi)
     
     return contract
@@ -68,6 +75,7 @@ def fund_with_link(contract_address, account=None, link_token=None, amount=10000
     link_token = link_token if link_token else get_contract("link_token")
 
     # the line below is another way to interact with contract that has already been deployed
+    # transfer link token to your contract account
     tx = link_token.transfer(contract_address, amount, {"from": account})
     # if we have the interface we don't even need to compile down to the api ourselves, because brownie is smart
     # enough to know that it can compile down to the api itself and we can just work directly with that interface

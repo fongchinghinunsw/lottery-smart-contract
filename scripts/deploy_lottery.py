@@ -11,7 +11,7 @@ def deploy_lottery():
         config["networks"][network.show_active()]["fee"],
         config["networks"][network.show_active()]["keyhash"],
         {"from": account},
-        # if no verify key, default set to false
+        # if no verify key, dictionary's get() method set the return value to false
         publish_source=config["networks"][network.show_active()].get("verify", False)
     )
     print("Deployed lottery!")
@@ -29,7 +29,7 @@ def start_lottery():
 def enter_lottery():
     account = get_account()
     lottery = Lottery[-1]
-    value = lottery.getEntranceFee() + 100000000
+    value = lottery.getEntranceFee()
     tx = lottery.enter({"from": account, "value": value})
     tx.wait(1)
     print("You entered the lottery!")
