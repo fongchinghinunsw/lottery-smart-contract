@@ -6,9 +6,3 @@ Since we have an admin here, this means that our application isn't necessarily g
 to be truly decentralized because we have a single person chooses when the lottery is
 over, we could intead choose a random participate being the admin or we could have the
 lottery automatically open and close based off some time parameters.
-
-How do we want to test this?
-
-1. `mainnet-fork`
-2. `development` with mocks
-3. `testnet`
